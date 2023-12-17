@@ -1,7 +1,6 @@
 package app
 
 import (
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -29,9 +28,14 @@ func Run(config config.Config, logger logger.Logger) {
 
 	select {
 	case s := <-interrupt:
-		log.Println("app - Run - signal: " + s.String())
+		logger.Info("app - Run - signal: " + s.String())
 
 	case err := <-httpServer.Notify():
-		log.Println("app - Run - httpServer.Notify", "err", err)
+		logger.Error("app - Run - httpServer.Notify", "err", err)
+	}
+
+	err := httpServer.Shutdown()
+	if err != nil {
+		logger.Error("app - Run - httpServer.Shutdown", "err", err)
 	}
 }

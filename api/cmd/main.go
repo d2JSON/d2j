@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/VladPetriv/postgreSQL2JSON/config"
-	app "github.com/VladPetriv/postgreSQL2JSON/internal"
+	"github.com/VladPetriv/postgreSQL2JSON/internal/app"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/logger"
 )
 
