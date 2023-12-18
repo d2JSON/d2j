@@ -23,4 +23,3 @@ jobs:
         with:
           version: v1.54
           working-directory: api
-          args: --config=../../api/.golangci-lint.yml  
