@@ -1,4 +1,4 @@
-name: go-lint
+name: api-lint
 on:
   push:
     branches:
