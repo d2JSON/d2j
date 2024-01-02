@@ -12,12 +12,12 @@ type logger struct {
 
 var _ Logger = (*logger)(nil)
 
-func New(level string) Logger {
+func New(level string) *logger {
 	loggerHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: parseSlogLevel(level),
 	})
 
-	return logger{
+	return &logger{
 		logger: slog.New(loggerHandler),
 	}
 }
@@ -37,7 +37,7 @@ func parseSlogLevel(level string) slog.Leveler {
 	return slog.LevelDebug
 }
 
-func (l logger) Named(name string) Logger {
+func (l *logger) Named(name string) Logger {
 	handler := l.logger.Handler().WithAttrs([]slog.Attr{
 		{
 			Key:   "name",
@@ -45,27 +45,27 @@ func (l logger) Named(name string) Logger {
 		},
 	})
 
-	return logger{
+	return &logger{
 		logger: slog.New(handler),
 	}
 }
 
-func (l logger) Debug(message string, args ...interface{}) {
+func (l *logger) Debug(message string, args ...interface{}) {
 	l.logger.Debug(message, args...)
 }
 
-func (l logger) Info(message string, args ...interface{}) {
+func (l *logger) Info(message string, args ...interface{}) {
 	l.logger.Info(message, args...)
 }
 
-func (l logger) Warn(message string, args ...interface{}) {
+func (l *logger) Warn(message string, args ...interface{}) {
 	l.logger.Warn(message, args...)
 }
 
-func (l logger) Error(message string, args ...interface{}) {
+func (l *logger) Error(message string, args ...interface{}) {
 	l.logger.Error(message, args...)
 }
 
-func (l logger) Fatal(message string, args ...interface{}) {
+func (l *logger) Fatal(message string, args ...interface{}) {
 	log.Fatal(message, args)
 }
