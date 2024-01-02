@@ -6,14 +6,38 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/lib/pq"
+
 	"github.com/VladPetriv/postgreSQL2JSON/config"
+	"github.com/VladPetriv/postgreSQL2JSON/internal/controller"
+	"github.com/VladPetriv/postgreSQL2JSON/internal/service"
+	"github.com/VladPetriv/postgreSQL2JSON/pkg/database"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/httpserver"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/logger"
 	"github.com/gin-gonic/gin"
 )
 
 func Run(config config.Config, logger logger.Logger) {
+	postgresSQL := database.NewPostgreSQLDatabase(logger)
+
+	serviceOptions := service.ServiceOptions{
+		Logger:   logger,
+		Config:   config,
+		Database: postgresSQL,
+	}
+
+	services := service.Services{
+		Database: service.NewDatabaseService(&serviceOptions),
+	}
+
 	httpHandler := gin.New()
+
+	controller.New(controller.Options{
+		Handler:  httpHandler,
+		Logger:   logger,
+		Config:   config,
+		Services: services,
+	})
 
 	httpServer := httpserver.New(
 		httpHandler,
