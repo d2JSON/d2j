@@ -10,6 +10,7 @@ import (
 type Config struct {
 	HTTP   HTTP
 	Logger Logger
+	Redis  Redis
 }
 
 type (
@@ -19,6 +20,12 @@ type (
 
 	Logger struct {
 		LogLevel string `env:"LOGGER_LOG_LEVEL" env-default:"debug"`
+	}
+
+	Redis struct {
+		Host     string `env:"REDIS_HOST" env-default:"localhost:6379"`
+		Password string `env:"REDIS_PASSWORD" env-default:""`
+		Database int    `env:"REDIS_DATABASE" env-default:"0"`
 	}
 )
 
