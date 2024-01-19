@@ -4,7 +4,10 @@ import (
 	"context"
 
 	"github.com/VladPetriv/postgreSQL2JSON/config"
+	"github.com/VladPetriv/postgreSQL2JSON/pkg/caching"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/database"
+	"github.com/VladPetriv/postgreSQL2JSON/pkg/encryption"
+	"github.com/VladPetriv/postgreSQL2JSON/pkg/hashing"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/logger"
 )
 
@@ -13,22 +16,34 @@ type Services struct {
 }
 
 type serviceContext struct {
-	logger   logger.Logger
-	config   config.Config
-	database database.Database
+	logger    logger.Logger
+	config    config.Config
+	cacher    caching.Cacher
+	encryptor encryption.Encryptor
+	hasher    hashing.Hasher
+	database  database.Database
 }
 
 type ServiceOptions struct {
-	Logger   logger.Logger
-	Config   config.Config
-	Database database.Database
+	Logger    logger.Logger
+	Config    config.Config
+	Cacher    caching.Cacher
+	Encryptor encryption.Encryptor
+	Hasher    hashing.Hasher
+	Database  database.Database
 }
 
 type DatabaseService interface {
-	TestDatabaseConnection(ctx context.Context, options TestDatabaseConnectionOptions) error
+	TestDatabaseConnection(ctx context.Context, options DatabaseConnectionOptions) error
+	ConnectToDatabase(ctx context.Context, options ConnectToDatabaseOptions) (string, error)
 }
 
-type TestDatabaseConnectionOptions struct {
+type ConnectToDatabaseOptions struct {
+	SecretKey                 string                    `json:"secretKey"`
+	DatabaseConnectionOptions DatabaseConnectionOptions `json:"databaseConnectionOptions"`
+}
+
+type DatabaseConnectionOptions struct {
 	Host           string `json:"host" binding:"required"`
 	Port           int    `json:"port" binding:"required"`
 	DatabaseName   string `json:"databaseName" binding:"required"`

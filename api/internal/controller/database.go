@@ -21,11 +21,12 @@ func setupDatabaseRoutes(options RouterOptions) {
 	dbGroup := options.Handler.Group("/db")
 	{
 		dbGroup.POST("/test-connection", wrapHandler(options, r.testDBConnection))
+		dbGroup.POST("/connect", wrapHandler(options, r.connectToDatabase))
 	}
 }
 
 type testDBConnectionRequestBody struct {
-	*service.TestDatabaseConnectionOptions
+	*service.DatabaseConnectionOptions
 }
 
 func (r databaseRouter) testDBConnection(c *gin.Context) (interface{}, *httpResponseError) {
@@ -39,7 +40,7 @@ func (r databaseRouter) testDBConnection(c *gin.Context) (interface{}, *httpResp
 	}
 	logger.Debug("parsed request body", "requestBody", requestBody)
 
-	err = r.services.Database.TestDatabaseConnection(c, *requestBody.TestDatabaseConnectionOptions)
+	err = r.services.Database.TestDatabaseConnection(c, *requestBody.DatabaseConnectionOptions)
 	if err != nil {
 		logger.Error("test database connection", "err", err)
 		return nil, &httpResponseError{Message: "test database connection failed", Type: ErrorTypeServer}
@@ -47,4 +48,33 @@ func (r databaseRouter) testDBConnection(c *gin.Context) (interface{}, *httpResp
 
 	logger.Info("connection tested")
 	return nil, nil
+}
+
+type connectToDatabaseRequestBody struct {
+	*service.ConnectToDatabaseOptions
+}
+
+type connectToDatabaseResponse struct {
+	SecretKey string `json:"secretKey"`
+}
+
+func (r databaseRouter) connectToDatabase(c *gin.Context) (interface{}, *httpResponseError) {
+	logger := r.logger.Named("databaseRouter.connectToDatabase")
+
+	var requestBody connectToDatabaseRequestBody
+	err := c.ShouldBindJSON(&requestBody)
+	if err != nil {
+		logger.Error("bind request body to json", "err", err)
+		return nil, &httpResponseError{Message: "invalid request body", Type: ErrorTypeClient}
+	}
+	logger.Debug("parsed request body", "requestBody", requestBody)
+
+	key, err := r.services.Database.ConnectToDatabase(c, *requestBody.ConnectToDatabaseOptions)
+	if err != nil {
+		logger.Error("connect to database", "err", err)
+		return nil, &httpResponseError{Message: "connect to database", Type: ErrorTypeServer}
+	}
+
+	logger.Info("connected to database", "key", key)
+	return connectToDatabaseResponse{SecretKey: key}, nil
 }

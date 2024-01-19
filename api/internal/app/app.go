@@ -11,7 +11,10 @@ import (
 	"github.com/VladPetriv/postgreSQL2JSON/config"
 	"github.com/VladPetriv/postgreSQL2JSON/internal/controller"
 	"github.com/VladPetriv/postgreSQL2JSON/internal/service"
+	"github.com/VladPetriv/postgreSQL2JSON/pkg/caching"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/database"
+	"github.com/VladPetriv/postgreSQL2JSON/pkg/encryption"
+	"github.com/VladPetriv/postgreSQL2JSON/pkg/hashing"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/httpserver"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/logger"
 	"github.com/gin-gonic/gin"
@@ -20,10 +23,22 @@ import (
 func Run(config config.Config, logger logger.Logger) {
 	postgresSQL := database.NewPostgreSQLDatabase(logger)
 
+	encryptor := encryption.NewCryptoAES()
+	hasher := hashing.New()
+
+	casher := caching.NewRedis(caching.ConnectionOptions{
+		Host:     config.Redis.Host,
+		Password: config.Redis.Password,
+		Database: config.Redis.Database,
+	})
+
 	serviceOptions := service.ServiceOptions{
-		Logger:   logger,
-		Config:   config,
-		Database: postgresSQL,
+		Logger:    logger,
+		Config:    config,
+		Cacher:    casher,
+		Encryptor: encryptor,
+		Hasher:    hasher,
+		Database:  postgresSQL,
 	}
 
 	services := service.Services{
