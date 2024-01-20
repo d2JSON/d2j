@@ -113,3 +113,63 @@ func (d databaseService) ConnectToDatabase(ctx context.Context, options ConnectT
 
 	return secretKey, nil
 }
+
+func (d databaseService) ListDatabaseTables(ctx context.Context, options ListDatabaseTablesOptions) ([]string, error) {
+	logger := d.logger.Named("databaseService.ListDatabaseTables")
+
+	encryptedDatabaseCredentials, err := d.cacher.Read(ctx, options.DatabaseKey)
+	if err != nil {
+		logger.Error("read encrypted database credentials from cache", "err", err)
+		return nil, fmt.Errorf("rear encrypted database credentials from cache: %w", err)
+	}
+	logger.Debug("read encrypted database credentials from cache")
+
+	decryptedDatabaseCredentials, err := d.encryptor.Decrypt(encryption.DecryptOptions{
+		EncryptedData: encryptedDatabaseCredentials,
+		Secret:        options.SecretKey,
+	})
+	if err != nil {
+		logger.Error("decrypt database credentials", "err", err)
+		return nil, fmt.Errorf("decrypt database credentials: %w", err)
+	}
+	logger.Debug("decrypted database credentials")
+
+	var databaseConnectionOptions DatabaseConnectionOptions
+
+	err = json.Unmarshal(decryptedDatabaseCredentials, &databaseConnectionOptions)
+	if err != nil {
+		logger.Error("unmarshal database credentials", "err", err)
+		return nil, fmt.Errorf("unmarshal database credentials: %w", err)
+
+	}
+	logger.Debug("unmarshalled database credentials")
+
+	databaseClient, err := d.database.Connect(database.ConnectionOptions{
+		Host:           databaseConnectionOptions.Host,
+		Port:           databaseConnectionOptions.Port,
+		Username:       databaseConnectionOptions.Username,
+		Password:       databaseConnectionOptions.Password,
+		DatabaseName:   databaseConnectionOptions.DatabaseName,
+		SSLModeEnabled: databaseConnectionOptions.SSLModeEnabled,
+	})
+	if err != nil {
+		logger.Error("connect to database", "err", err)
+		return nil, fmt.Errorf("connect to database: %w", err)
+	}
+	logger.Debug("connected to database")
+
+	databaseTables, err := databaseClient.ListTables()
+	if err != nil {
+		logger.Error("list database tables", "err", err)
+		return nil, fmt.Errorf("list database tables: %w", err)
+	}
+
+	tableNames := make([]string, len(databaseTables))
+
+	for i := range tableNames {
+		tableNames[i] = databaseTables[i].TableName
+	}
+	logger.Debug("converted database tables to slice of strings", "tableNames", tableNames)
+
+	return tableNames, nil
+}

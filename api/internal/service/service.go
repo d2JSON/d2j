@@ -36,10 +36,11 @@ type ServiceOptions struct {
 type DatabaseService interface {
 	TestDatabaseConnection(ctx context.Context, options DatabaseConnectionOptions) error
 	ConnectToDatabase(ctx context.Context, options ConnectToDatabaseOptions) (string, error)
+	ListDatabaseTables(ctx context.Context, options ListDatabaseTablesOptions) ([]string, error)
 }
 
 type ConnectToDatabaseOptions struct {
-	SecretKey                 string                    `json:"secretKey"`
+	SecretKey                 string                    `json:"secretKey" binding:"required"`
 	DatabaseConnectionOptions DatabaseConnectionOptions `json:"databaseConnectionOptions"`
 }
 
@@ -50,4 +51,9 @@ type DatabaseConnectionOptions struct {
 	Username       string `json:"username" binding:"required"`
 	Password       string `json:"password" binding:"required"`
 	SSLModeEnabled bool   `json:"sslModeEnabled"`
+}
+
+type ListDatabaseTablesOptions struct {
+	SecretKey   string `json:"secretKey" binding:"required"`
+	DatabaseKey string `json:"databaseKey" binding:"required"`
 }

@@ -22,6 +22,7 @@ func setupDatabaseRoutes(options RouterOptions) {
 	{
 		dbGroup.POST("/test-connection", wrapHandler(options, r.testDBConnection))
 		dbGroup.POST("/connect", wrapHandler(options, r.connectToDatabase))
+		dbGroup.POST("/list-tables", wrapHandler(options, r.listDatabaseTables))
 	}
 }
 
@@ -77,4 +78,35 @@ func (r databaseRouter) connectToDatabase(c *gin.Context) (interface{}, *httpRes
 
 	logger.Info("connected to database", "key", key)
 	return connectToDatabaseResponse{SecretKey: key}, nil
+}
+
+type listDatabaseTablesRequestBody struct {
+	*service.ListDatabaseTablesOptions
+}
+
+type listDatabaseTablesResponse struct {
+	Tables []string `json:"tables"`
+}
+
+func (r databaseRouter) listDatabaseTables(c *gin.Context) (interface{}, *httpResponseError) {
+	logger := r.logger.Named("databaseRouter.listDatabaseTables")
+
+	var requestBody listDatabaseTablesRequestBody
+	err := c.ShouldBindJSON(&requestBody)
+	if err != nil {
+		logger.Error("bind request body to json", "err", err)
+		return nil, &httpResponseError{Message: "invalid request body", Type: ErrorTypeClient}
+	}
+	logger.Debug("parsed request body", "requestBody", requestBody)
+
+	tables, err := r.services.Database.ListDatabaseTables(c, *requestBody.ListDatabaseTablesOptions)
+	if err != nil {
+		logger.Error("connect to database", "err", err)
+		return nil, &httpResponseError{Message: "connect to database", Type: ErrorTypeServer}
+	}
+
+	logger.Info("got database tables", "tables", tables)
+	return listDatabaseTablesResponse{
+		Tables: tables,
+	}, nil
 }
