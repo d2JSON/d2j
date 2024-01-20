@@ -16,7 +16,6 @@ linters:
     - exportloopref
     - forbidigo
     - gci
-    - gitaly-linters
     - gofmt
     - gofumpt
     - goimports
