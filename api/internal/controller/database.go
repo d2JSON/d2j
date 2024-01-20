@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"errors"
+
 	"github.com/VladPetriv/postgreSQL2JSON/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -101,6 +103,11 @@ func (r databaseRouter) listDatabaseTables(c *gin.Context) (interface{}, *httpRe
 
 	tables, err := r.services.Database.ListDatabaseTables(c, *requestBody.ListDatabaseTablesOptions)
 	if err != nil {
+		if errors.Is(err, service.ErrConnectionSessionTimeExpired) {
+			logger.Info(err.Error())
+			return nil, &httpResponseError{Message: "Connection session time expired", Type: ErrorTypeClient}
+		}
+
 		logger.Error("connect to database", "err", err)
 		return nil, &httpResponseError{Message: "connect to database", Type: ErrorTypeServer}
 	}

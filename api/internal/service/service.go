@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/VladPetriv/postgreSQL2JSON/config"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/caching"
@@ -41,6 +42,7 @@ type DatabaseService interface {
 
 type ConnectToDatabaseOptions struct {
 	SecretKey                 string                    `json:"secretKey" binding:"required"`
+	ConnectionSessionTime     string                    `json:"connectionSessionTime" binding:"required"`
 	DatabaseConnectionOptions DatabaseConnectionOptions `json:"databaseConnectionOptions"`
 }
 
@@ -57,3 +59,7 @@ type ListDatabaseTablesOptions struct {
 	SecretKey   string `json:"secretKey" binding:"required"`
 	DatabaseKey string `json:"databaseKey" binding:"required"`
 }
+
+var (
+	ErrConnectionSessionTimeExpired = errors.New("connection session time expired")
+)

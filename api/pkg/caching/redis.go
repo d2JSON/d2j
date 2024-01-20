@@ -2,8 +2,8 @@ package caching
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -24,11 +24,10 @@ func NewRedis(opts ConnectionOptions) *redisCache {
 	return &redisCache{client}
 }
 
-func (r redisCache) Write(ctx context.Context, key string, value interface{}) error {
-	err := r.client.Set(ctx, key, value, time.Duration(60*time.Minute)).Err()
+func (r redisCache) Write(ctx context.Context, options WriteOptions) error {
+	err := r.client.Set(ctx, options.Key, options.Value, options.TTL).Err()
 	if err != nil {
 		return fmt.Errorf("set into redis: %w", err)
-
 	}
 
 	return nil
@@ -37,6 +36,10 @@ func (r redisCache) Write(ctx context.Context, key string, value interface{}) er
 func (r redisCache) Read(ctx context.Context, key string) (string, error) {
 	data, err := r.client.Get(ctx, key).Result()
 	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return "", ErrResultIsNil
+		}
+
 		return "", fmt.Errorf("get from redis: %w", err)
 	}
 

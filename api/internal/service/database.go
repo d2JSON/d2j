@@ -3,8 +3,11 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"time"
 
+	"github.com/VladPetriv/postgreSQL2JSON/pkg/caching"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/database"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/encryption"
 	"github.com/google/uuid"
@@ -104,7 +107,17 @@ func (d databaseService) ConnectToDatabase(ctx context.Context, options ConnectT
 		return "", fmt.Errorf("encrypt connection options: %w", err)
 	}
 
-	err = d.cacher.Write(ctx, secretKey, encryptedConnectionOPtions)
+	ttl, err := time.ParseDuration(options.ConnectionSessionTime)
+	if err != nil {
+		logger.Error("parse connection session time", "err", err)
+		return "", fmt.Errorf("parsr connection session time: %w", err)
+	}
+
+	err = d.cacher.Write(ctx, caching.WriteOptions{
+		Key:   secretKey,
+		Value: encryptedConnectionOPtions,
+		TTL:   ttl,
+	})
 	if err != nil {
 		logger.Error("write connection options to cache", "err", err)
 		return "", fmt.Errorf("write connection options to cache: %w", err)
@@ -119,8 +132,14 @@ func (d databaseService) ListDatabaseTables(ctx context.Context, options ListDat
 
 	encryptedDatabaseCredentials, err := d.cacher.Read(ctx, options.DatabaseKey)
 	if err != nil {
+
+		if errors.Is(err, caching.ErrResultIsNil) {
+			logger.Info("connection session time expired")
+			return nil, ErrConnectionSessionTimeExpired
+		}
+
 		logger.Error("read encrypted database credentials from cache", "err", err)
-		return nil, fmt.Errorf("rear encrypted database credentials from cache: %w", err)
+		return nil, fmt.Errorf("read encrypted database credentials from cache: %w", err)
 	}
 	logger.Debug("read encrypted database credentials from cache")
 
