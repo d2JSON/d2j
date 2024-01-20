@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/logger"
 	"github.com/jmoiron/sqlx"
@@ -81,4 +82,26 @@ func (p *postgreSQL) Close() error {
 
 	logger.Info("closed postgresql connection")
 	return nil
+}
+
+func (p *postgreSQLClient) ListTables() ([]Table, error) {
+	logger := p.logger.Named("postgreSQLClient.ListTables")
+	var tables []Table
+	err := p.db.Select(
+		&tables,
+		"SELECT schemaname, tablename FROM pg_catalog.pg_tables;",
+	)
+	if err != nil {
+		logger.Error("select postgresql table names", "err", err)
+		return nil, fmt.Errorf("select postgresql table names: %w", err)
+	}
+	logger.Debug("got all postgresql tables", "tables", tables)
+
+	tables = slices.DeleteFunc(tables, func(t Table) bool {
+		return t.SchemaName != "public"
+
+	})
+	logger.Debug("removed not public tables from the result", "tables", tables)
+
+	return tables, nil
 }

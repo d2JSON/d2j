@@ -5,7 +5,9 @@ type Database interface {
 	Close() error
 }
 
-type DBClient interface{}
+type DBClient interface {
+	ListTables() ([]Table, error)
+}
 
 type ConnectionOptions struct {
 	Host           string
@@ -17,5 +19,6 @@ type ConnectionOptions struct {
 }
 
 type Table struct {
-	Name string `json:"name"`
+	SchemaName string `db:"schemaname"`
+	TableName  string `db:"tablename"`
 }
