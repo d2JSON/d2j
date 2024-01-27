@@ -32,6 +32,8 @@ type testDBConnectionRequestBody struct {
 	*service.DatabaseConnectionOptions
 }
 
+type testDBConnectionResponseBody struct{}
+
 func (r databaseRouter) testDBConnection(c *gin.Context) (interface{}, *httpResponseError) {
 	logger := r.logger.Named("databaseRouter.TestDBConnection")
 
@@ -50,7 +52,7 @@ func (r databaseRouter) testDBConnection(c *gin.Context) (interface{}, *httpResp
 	}
 
 	logger.Info("connection tested")
-	return nil, nil
+	return testDBConnectionResponseBody{}, nil
 }
 
 type connectToDatabaseRequestBody struct {
