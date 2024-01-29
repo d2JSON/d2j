@@ -38,6 +38,7 @@ type DatabaseService interface {
 	TestDatabaseConnection(ctx context.Context, options DatabaseConnectionOptions) error
 	ConnectToDatabase(ctx context.Context, options ConnectToDatabaseOptions) (string, error)
 	ListDatabaseTables(ctx context.Context, options ListDatabaseTablesOptions) ([]string, error)
+	ConvertDatabaseResultToJSON(ctx context.Context, options ConvertDatabaseResultToJSONOptions) (string, error)
 }
 
 type ConnectToDatabaseOptions struct {
@@ -60,6 +61,14 @@ type ListDatabaseTablesOptions struct {
 	DatabaseKey string `json:"databaseKey" binding:"required"`
 }
 
-var (
-	ErrConnectionSessionTimeExpired = errors.New("connection session time expired")
-)
+type ConvertDatabaseResultToJSONOptions struct {
+	SecretKey   string `json:"secretKey" binding:"required"`
+	DatabaseKey string `json:"databaseKey" binding:"required"`
+	TableName   string `json:"tableName" binding:"required"`
+
+	Fields []string `json:"fileds"`
+	Limit  int      `json:"limit"`
+	Where  string   `json:"where"`
+}
+
+var ErrConnectionSessionTimeExpired = errors.New("connection session time expired")

@@ -25,6 +25,7 @@ func setupDatabaseRoutes(options RouterOptions) {
 		dbGroup.POST("/test-connection", wrapHandler(options, r.testDBConnection))
 		dbGroup.POST("/connect", wrapHandler(options, r.connectToDatabase))
 		dbGroup.POST("/list-tables", wrapHandler(options, r.listDatabaseTables))
+		dbGroup.POST("/get-json", wrapHandler(options, r.convertDatabaseResultToJSON))
 	}
 }
 
@@ -118,4 +119,38 @@ func (r databaseRouter) listDatabaseTables(c *gin.Context) (interface{}, *httpRe
 	return listDatabaseTablesResponse{
 		Tables: tables,
 	}, nil
+}
+
+type convertDatabaseResultToJSONRequestBody struct {
+	*service.ConvertDatabaseResultToJSONOptions
+}
+
+type convertDatabaseResultToJSONResponseBody struct {
+	Result string `json:"result"`
+}
+
+func (r databaseRouter) convertDatabaseResultToJSON(c *gin.Context) (interface{}, *httpResponseError) {
+	logger := r.logger.Named("databaseRouter.convertDatabaseResultToJSON")
+
+	var reqBody convertDatabaseResultToJSONRequestBody
+	err := c.ShouldBindJSON(&reqBody)
+	if err != nil {
+		logger.Error("bind request body to json", "err", err)
+		return nil, &httpResponseError{Message: "invalid request body", Type: ErrorTypeClient}
+	}
+	logger.Debug("parsed request body", "reqBody", reqBody)
+
+	convertedResult, err := r.services.Database.ConvertDatabaseResultToJSON(c, *reqBody.ConvertDatabaseResultToJSONOptions)
+	if err != nil {
+		if errors.Is(err, service.ErrConnectionSessionTimeExpired) {
+			logger.Info(err.Error())
+			return nil, &httpResponseError{Message: "Connection session time expired", Type: ErrorTypeClient}
+		}
+
+		logger.Error("connect to database", "err", err)
+		return nil, &httpResponseError{Message: "convert database result to JSON", Type: ErrorTypeServer}
+	}
+
+	logger.Info("converted database result to JSON")
+	return convertDatabaseResultToJSONResponseBody{convertedResult}, nil
 }
