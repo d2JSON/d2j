@@ -7,6 +7,7 @@ type Database interface {
 
 type DBClient interface {
 	ListTables() ([]Table, error)
+	ExecuteQuery(query string) ([]string, error)
 }
 
 type ConnectionOptions struct {

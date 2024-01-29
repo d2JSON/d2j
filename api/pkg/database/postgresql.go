@@ -86,6 +86,7 @@ func (p *postgreSQL) Close() error {
 
 func (p *postgreSQLClient) ListTables() ([]Table, error) {
 	logger := p.logger.Named("postgreSQLClient.ListTables")
+
 	var tables []Table
 	err := p.db.Select(
 		&tables,
@@ -99,9 +100,39 @@ func (p *postgreSQLClient) ListTables() ([]Table, error) {
 
 	tables = slices.DeleteFunc(tables, func(t Table) bool {
 		return t.SchemaName != "public"
-
 	})
 	logger.Debug("removed not public tables from the result", "tables", tables)
 
 	return tables, nil
+}
+
+func (p *postgreSQLClient) ExecuteQuery(query string) ([]string, error) {
+	logger := p.logger.Named("postgreSQLClient.ExecuteQuery")
+
+	rows, err := p.db.Query(query)
+	if err != nil {
+		logger.Error("run query", "err", err)
+		return nil, fmt.Errorf("run query: %w", err)
+	}
+	defer rows.Close()
+
+	var result []string
+	for rows.Next() {
+		var row string
+
+		err := rows.Scan(&row)
+		if err != nil {
+			logger.Error("scan row", "err", err)
+			continue
+		}
+
+		result = append(result, row)
+	}
+	if rows.Err() != nil {
+		logger.Error("got sql rows error", "rows.Err", rows.Err())
+		return nil, fmt.Errorf("got sql rows error: %w", rows.Err())
+	}
+	logger.Debug("got result", "result", result)
+
+	return result, nil
 }
