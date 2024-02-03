@@ -222,14 +222,7 @@ func (d databaseService) ConvertDatabaseResultToJSON(ctx context.Context, option
 	JSONResult += " ]"
 	logger.Debug("converted database query result to JSON", "JSONResult", JSONResult)
 
-	formattedJSON, err := json.MarshalIndent(JSONResult, "", "\t")
-	if err != nil {
-		logger.Error("marshal intent JSON", "err", err)
-		return "", fmt.Errorf("marshal intent JSON: %w", err)
-	}
-	logger.Debug("formatted JSON", "formattedJSON", string(formattedJSON))
-
-	return string(formattedJSON), nil
+	return JSONResult, nil
 }
 
 type buildQueryOptions struct {
@@ -262,7 +255,7 @@ func (d databaseService) buildQuery(options buildQueryOptions) string {
 		}
 
 		query += fmt.Sprintf("FROM %s", options.TableName)
-		logger.Debug("built selece with specific fields and from statement", "query", query)
+		logger.Debug("built select with specific fields and from statement", "query", query)
 	}
 
 	if len(options.Where) != 0 {

@@ -33,7 +33,9 @@ type testDBConnectionRequestBody struct {
 	*service.DatabaseConnectionOptions
 }
 
-type testDBConnectionResponseBody struct{}
+type testDBConnectionResponseBody struct {
+	Success bool `json:"success"`
+}
 
 func (r databaseRouter) testDBConnection(c *gin.Context) (interface{}, *httpResponseError) {
 	logger := r.logger.Named("databaseRouter.TestDBConnection")
@@ -53,7 +55,9 @@ func (r databaseRouter) testDBConnection(c *gin.Context) (interface{}, *httpResp
 	}
 
 	logger.Info("connection tested")
-	return testDBConnectionResponseBody{}, nil
+	return testDBConnectionResponseBody{
+		Success: true,
+	}, nil
 }
 
 type connectToDatabaseRequestBody struct {
@@ -61,7 +65,7 @@ type connectToDatabaseRequestBody struct {
 }
 
 type connectToDatabaseResponse struct {
-	SecretKey string `json:"secretKey"`
+	DatabaseKey string `json:"databaseKey"`
 }
 
 func (r databaseRouter) connectToDatabase(c *gin.Context) (interface{}, *httpResponseError) {
@@ -75,14 +79,14 @@ func (r databaseRouter) connectToDatabase(c *gin.Context) (interface{}, *httpRes
 	}
 	logger.Debug("parsed request body", "requestBody", requestBody)
 
-	key, err := r.services.Database.ConnectToDatabase(c, *requestBody.ConnectToDatabaseOptions)
+	databaseKey, err := r.services.Database.ConnectToDatabase(c, *requestBody.ConnectToDatabaseOptions)
 	if err != nil {
 		logger.Error("connect to database", "err", err)
 		return nil, &httpResponseError{Message: "connect to database", Type: ErrorTypeServer}
 	}
 
-	logger.Info("connected to database", "key", key)
-	return connectToDatabaseResponse{SecretKey: key}, nil
+	logger.Info("connected to database", "databaseKey", databaseKey)
+	return connectToDatabaseResponse{DatabaseKey: databaseKey}, nil
 }
 
 type listDatabaseTablesRequestBody struct {
