@@ -44,15 +44,15 @@ func (d databaseService) TestDatabaseConnection(ctx context.Context, options Dat
 		SSLModeEnabled: options.SSLModeEnabled,
 	})
 	if err != nil {
-		logger.Error("connect to db", "err", err)
-		return fmt.Errorf("connect to db: %w", err)
+		logger.Error("connect to database", "err", err)
+		return fmt.Errorf("connect to database: %w", err)
 	}
 	logger.Debug("connected to database")
 
 	err = d.database.Close()
 	if err != nil {
-		logger.Error("close db connection", "err", err)
-		return fmt.Errorf("close db connection: %w", err)
+		logger.Error("close database connection", "err", err)
+		return fmt.Errorf("close database connection: %w", err)
 	}
 	logger.Debug("closed database connection")
 
@@ -71,25 +71,26 @@ func (d databaseService) ConnectToDatabase(ctx context.Context, options ConnectT
 		SSLModeEnabled: options.DatabaseConnectionOptions.SSLModeEnabled,
 	})
 	if err != nil {
-		logger.Error("connect to db", "err", err)
-		return "", fmt.Errorf("connect to db: %w", err)
+		logger.Error("connect to database", "err", err)
+		return "", fmt.Errorf("connect to database: %w", err)
 	}
 	logger.Debug("connected to database")
 
 	defer func() {
 		err = d.database.Close()
 		if err != nil {
-			logger.Error("close db connection", "err", err)
+			logger.Error("close database connection", "err", err)
+		} else {
+			logger.Debug("closed database connection")
 		}
-		logger.Debug("closed database connection")
 	}()
 
-	secretKey, err := d.hasher.GenerateHashFromString(uuid.NewString())
+	databaseKey, err := d.hasher.GenerateHashFromString(uuid.NewString())
 	if err != nil {
 		logger.Debug("generate hash from string", "err", err)
 		return "", fmt.Errorf("generate hash from string: %w", err)
 	}
-	logger.Debug("hash generated")
+	logger.Debug("generated hash")
 
 	marshalledConnectionOptions, err := json.Marshal(options.DatabaseConnectionOptions)
 	if err != nil {
@@ -98,7 +99,7 @@ func (d databaseService) ConnectToDatabase(ctx context.Context, options ConnectT
 	}
 	logger.Debug("marshalled connection options to JSON")
 
-	encryptedConnectionOPtions, err := d.encryptor.Encrypt(encryption.EncryptOptions{
+	encryptedConnectionData, err := d.encryptor.Encrypt(encryption.EncryptOptions{
 		Data:   marshalledConnectionOptions,
 		Secret: options.SecretKey,
 	})
@@ -106,25 +107,27 @@ func (d databaseService) ConnectToDatabase(ctx context.Context, options ConnectT
 		logger.Error("encrypt connection options", "err", err)
 		return "", fmt.Errorf("encrypt connection options: %w", err)
 	}
+	logger.Debug("encrypted connection data")
 
-	ttl, err := time.ParseDuration(options.ConnectionSessionTime)
+	connectionSessionTime, err := time.ParseDuration(options.ConnectionSessionTime)
 	if err != nil {
 		logger.Error("parse connection session time", "err", err)
-		return "", fmt.Errorf("parsr connection session time: %w", err)
+		return "", fmt.Errorf("parse connection session time: %w", err)
 	}
+	logger.Debug("parsed connection session time")
 
 	err = d.cacher.Write(ctx, caching.WriteOptions{
-		Key:   secretKey,
-		Value: encryptedConnectionOPtions,
-		TTL:   ttl,
+		Key:   databaseKey,
+		Value: encryptedConnectionData,
+		TTL:   connectionSessionTime,
 	})
 	if err != nil {
-		logger.Error("write connection options to cache", "err", err)
-		return "", fmt.Errorf("write connection options to cache: %w", err)
+		logger.Error("write connection data to cache", "err", err)
+		return "", fmt.Errorf("write connection data to cache: %w", err)
 	}
-	logger.Debug("wrote connection options to cache")
+	logger.Debug("wrote connection data to cache")
 
-	return secretKey, nil
+	return databaseKey, nil
 }
 
 func (d databaseService) ListDatabaseTables(ctx context.Context, options ListDatabaseTablesOptions) ([]string, error) {
@@ -132,6 +135,10 @@ func (d databaseService) ListDatabaseTables(ctx context.Context, options ListDat
 
 	databaseConnectionOptions, err := d.getDatabaseCredentials(ctx, options.SecretKey, options.DatabaseKey)
 	if err != nil {
+		if errors.Is(err, ErrConnectionSessionTimeExpired) {
+			logger.Info("connection session time expired")
+			return nil, err
+		}
 		logger.Error("get database credentials", "err", err)
 		return nil, fmt.Errorf("get database credentials: %w", err)
 	}
@@ -156,6 +163,7 @@ func (d databaseService) ListDatabaseTables(ctx context.Context, options ListDat
 		logger.Error("list database tables", "err", err)
 		return nil, fmt.Errorf("list database tables: %w", err)
 	}
+	logger.Debug("got database tables", "databaseTables", databaseTables)
 
 	tableNames := make([]string, len(databaseTables))
 
@@ -199,18 +207,18 @@ func (d databaseService) ConvertDatabaseResultToJSON(ctx context.Context, option
 	})
 	logger.Debug("built query", "query", query)
 
-	queryResult, err := databaseClient.ExecuteQuery(query)
+	databaseResult, err := databaseClient.ExecuteQuery(query)
 	if err != nil {
 		logger.Error("execute query", "err", err)
 		return "", fmt.Errorf("execute query: %w", err)
 	}
-	logger.Debug("got result after query", "queryResult", queryResult)
+	logger.Debug("got database result", "databaseResult", databaseResult)
 
 	JSONResult := "[ "
 
-	for index, row := range queryResult {
+	for index, row := range databaseResult {
 		// Do not add comma for the last slice element to get valid JSON format.
-		if index == len(queryResult)-1 {
+		if index == len(databaseResult)-1 {
 			JSONResult += fmt.Sprintf("%s\n", row)
 
 			continue
@@ -220,7 +228,7 @@ func (d databaseService) ConvertDatabaseResultToJSON(ctx context.Context, option
 	}
 
 	JSONResult += " ]"
-	logger.Debug("converted database query result to JSON", "JSONResult", JSONResult)
+	logger.Debug("converted database result to JSON", "JSONResult", JSONResult)
 
 	return JSONResult, nil
 }

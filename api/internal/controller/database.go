@@ -20,12 +20,12 @@ func setupDatabaseRoutes(options RouterOptions) {
 		},
 	}
 
-	dbGroup := options.Handler.Group("/db")
+	database := options.Handler.Group("/database")
 	{
-		dbGroup.POST("/test-connection", wrapHandler(options, r.testDBConnection))
-		dbGroup.POST("/connect", wrapHandler(options, r.connectToDatabase))
-		dbGroup.POST("/list-tables", wrapHandler(options, r.listDatabaseTables))
-		dbGroup.POST("/get-json", wrapHandler(options, r.convertDatabaseResultToJSON))
+		database.POST("/test-connection", wrapHandler(options, r.testDBConnection))
+		database.POST("/connect", wrapHandler(options, r.connectToDatabase))
+		database.POST("/list-tables", wrapHandler(options, r.listDatabaseTables))
+		database.POST("/get-json", wrapHandler(options, r.convertDatabaseResultToJSON))
 	}
 }
 
@@ -38,7 +38,7 @@ type testDBConnectionResponseBody struct {
 }
 
 func (r databaseRouter) testDBConnection(c *gin.Context) (interface{}, *httpResponseError) {
-	logger := r.logger.Named("databaseRouter.TestDBConnection")
+	logger := r.logger.Named("databaseRouter.testDBConnection")
 
 	var requestBody testDBConnectionRequestBody
 	err := c.ShouldBindJSON(&requestBody)
@@ -55,9 +55,7 @@ func (r databaseRouter) testDBConnection(c *gin.Context) (interface{}, *httpResp
 	}
 
 	logger.Info("connection tested")
-	return testDBConnectionResponseBody{
-		Success: true,
-	}, nil
+	return testDBConnectionResponseBody{true}, nil
 }
 
 type connectToDatabaseRequestBody struct {
@@ -86,7 +84,7 @@ func (r databaseRouter) connectToDatabase(c *gin.Context) (interface{}, *httpRes
 	}
 
 	logger.Info("connected to database", "databaseKey", databaseKey)
-	return connectToDatabaseResponse{DatabaseKey: databaseKey}, nil
+	return connectToDatabaseResponse{databaseKey}, nil
 }
 
 type listDatabaseTablesRequestBody struct {
@@ -115,14 +113,12 @@ func (r databaseRouter) listDatabaseTables(c *gin.Context) (interface{}, *httpRe
 			return nil, &httpResponseError{Message: "Connection session time expired", Type: ErrorTypeClient}
 		}
 
-		logger.Error("connect to database", "err", err)
-		return nil, &httpResponseError{Message: "connect to database", Type: ErrorTypeServer}
+		logger.Error("list database tables", "err", err)
+		return nil, &httpResponseError{Message: "list database tables", Type: ErrorTypeServer}
 	}
 
 	logger.Info("got database tables", "tables", tables)
-	return listDatabaseTablesResponse{
-		Tables: tables,
-	}, nil
+	return listDatabaseTablesResponse{tables}, nil
 }
 
 type convertDatabaseResultToJSONRequestBody struct {
@@ -151,7 +147,7 @@ func (r databaseRouter) convertDatabaseResultToJSON(c *gin.Context) (interface{}
 			return nil, &httpResponseError{Message: "Connection session time expired", Type: ErrorTypeClient}
 		}
 
-		logger.Error("connect to database", "err", err)
+		logger.Error("convert database result to JSON", "err", err)
 		return nil, &httpResponseError{Message: "convert database result to JSON", Type: ErrorTypeServer}
 	}
 

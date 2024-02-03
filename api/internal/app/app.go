@@ -6,6 +6,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 
 	"github.com/VladPetriv/postgreSQL2JSON/config"
@@ -17,7 +18,6 @@ import (
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/hashing"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/httpserver"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/logger"
-	"github.com/gin-gonic/gin"
 )
 
 func Run(config config.Config, logger logger.Logger) {
@@ -26,7 +26,7 @@ func Run(config config.Config, logger logger.Logger) {
 	encryptor := encryption.NewCryptoAES()
 	hasher := hashing.New()
 
-	casher := caching.NewRedis(caching.ConnectionOptions{
+	redis := caching.NewRedis(caching.ConnectionOptions{
 		Host:     config.Redis.Host,
 		Password: config.Redis.Password,
 		Database: config.Redis.Database,
@@ -35,7 +35,7 @@ func Run(config config.Config, logger logger.Logger) {
 	serviceOptions := service.ServiceOptions{
 		Logger:    logger,
 		Config:    config,
-		Cacher:    casher,
+		Cacher:    redis,
 		Encryptor: encryptor,
 		Hasher:    hasher,
 		Database:  postgresSQL,
@@ -76,5 +76,10 @@ func Run(config config.Config, logger logger.Logger) {
 	err := httpServer.Shutdown()
 	if err != nil {
 		logger.Error("app - Run - httpServer.Shutdown", "err", err)
+	}
+
+	err = redis.Close()
+	if err != nil {
+		logger.Error("close redis connection", "err", err)
 	}
 }
