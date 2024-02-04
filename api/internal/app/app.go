@@ -6,14 +6,53 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
+
 	"github.com/VladPetriv/postgreSQL2JSON/config"
+	"github.com/VladPetriv/postgreSQL2JSON/internal/controller"
+	"github.com/VladPetriv/postgreSQL2JSON/internal/service"
+	"github.com/VladPetriv/postgreSQL2JSON/pkg/caching"
+	"github.com/VladPetriv/postgreSQL2JSON/pkg/database"
+	"github.com/VladPetriv/postgreSQL2JSON/pkg/encryption"
+	"github.com/VladPetriv/postgreSQL2JSON/pkg/hashing"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/httpserver"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/logger"
-	"github.com/gin-gonic/gin"
 )
 
 func Run(config config.Config, logger logger.Logger) {
+	postgresSQL := database.NewPostgreSQLDatabase(logger)
+
+	encryptor := encryption.NewCryptoAES()
+	hasher := hashing.New()
+
+	redis := caching.NewRedis(caching.ConnectionOptions{
+		Host:     config.Redis.Host,
+		Password: config.Redis.Password,
+		Database: config.Redis.Database,
+	})
+
+	serviceOptions := service.ServiceOptions{
+		Logger:    logger,
+		Config:    config,
+		Cacher:    redis,
+		Encryptor: encryptor,
+		Hasher:    hasher,
+		Database:  postgresSQL,
+	}
+
+	services := service.Services{
+		Database: service.NewDatabaseService(&serviceOptions),
+	}
+
 	httpHandler := gin.New()
+
+	controller.New(controller.Options{
+		Handler:  httpHandler,
+		Logger:   logger,
+		Config:   config,
+		Services: services,
+	})
 
 	httpServer := httpserver.New(
 		httpHandler,
@@ -37,5 +76,10 @@ func Run(config config.Config, logger logger.Logger) {
 	err := httpServer.Shutdown()
 	if err != nil {
 		logger.Error("app - Run - httpServer.Shutdown", "err", err)
+	}
+
+	err = redis.Close()
+	if err != nil {
+		logger.Error("close redis connection", "err", err)
 	}
 }
