@@ -6,9 +6,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	_ "github.com/lib/pq"
-
 	"github.com/VladPetriv/postgreSQL2JSON/config"
 	"github.com/VladPetriv/postgreSQL2JSON/internal/controller"
 	"github.com/VladPetriv/postgreSQL2JSON/internal/service"
@@ -18,13 +15,15 @@ import (
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/hashing"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/httpserver"
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/logger"
+	"github.com/gin-gonic/gin"
 )
 
+// Run runs entire application
 func Run(config config.Config, logger logger.Logger) {
-	postgresSQL := database.NewPostgreSQLDatabase(logger)
+	postgreSQL := database.NewPostgreSQL(logger)
 
-	encryptor := encryption.NewCryptoAES()
-	hasher := hashing.New()
+	encryptor := encryption.New()
+	hasher := hashing.NewBcrypt()
 
 	redis := caching.NewRedis(caching.ConnectionOptions{
 		Host:     config.Redis.Host,
@@ -32,13 +31,13 @@ func Run(config config.Config, logger logger.Logger) {
 		Database: config.Redis.Database,
 	})
 
-	serviceOptions := service.ServiceOptions{
+	serviceOptions := service.Options{
 		Logger:    logger,
 		Config:    config,
 		Cacher:    redis,
 		Encryptor: encryptor,
 		Hasher:    hasher,
-		Database:  postgresSQL,
+		Database:  postgreSQL,
 	}
 
 	services := service.Services{

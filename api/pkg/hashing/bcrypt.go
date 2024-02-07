@@ -10,7 +10,8 @@ type bcrypt struct{}
 
 var _ Hasher = (*bcrypt)(nil)
 
-func New() *bcrypt {
+// NewBcrypt is used to create an instance of bcrypt hasher.
+func NewBcrypt() *bcrypt {
 	return &bcrypt{}
 }
 

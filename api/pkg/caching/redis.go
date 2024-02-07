@@ -14,6 +14,7 @@ type redisCache struct {
 
 var _ Cacher = (*redisCache)(nil)
 
+// NewRedis is used to create an instance of redis cache.
 func NewRedis(opts ConnectionOptions) *redisCache {
 	client := redis.NewClient(&redis.Options{
 		Addr:     opts.Host,

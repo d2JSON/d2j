@@ -2,11 +2,10 @@ package httpserver
 
 import (
 	"context"
+	"log"
 	"net"
 	"net/http"
 	"time"
-
-	"log"
 )
 
 const (

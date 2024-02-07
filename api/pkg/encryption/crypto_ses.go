@@ -13,7 +13,8 @@ type cryptoAES struct{}
 
 var _ Encryptor = (*cryptoAES)(nil)
 
-func NewCryptoAES() *cryptoAES {
+// New is used to create a new instance of crytpAES encryption.
+func New() *cryptoAES {
 	return &cryptoAES{}
 }
 

@@ -1,5 +1,6 @@
 package logger
 
+// Logger represents an interface for logging.
 type Logger interface {
 	Named(name string) Logger
 	Debug(message string, args ...interface{})

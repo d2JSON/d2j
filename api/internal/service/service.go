@@ -12,6 +12,7 @@ import (
 	"github.com/VladPetriv/postgreSQL2JSON/pkg/logger"
 )
 
+// Services represents a structure that contains all application services.
 type Services struct {
 	Database DatabaseService
 }
@@ -25,7 +26,8 @@ type serviceContext struct {
 	database  database.Database
 }
 
-type ServiceOptions struct {
+// Options represents a structure that contains all packages that needed for services.
+type Options struct {
 	Logger    logger.Logger
 	Config    config.Config
 	Cacher    caching.Cacher
@@ -34,6 +36,7 @@ type ServiceOptions struct {
 	Database  database.Database
 }
 
+// DatabaseService ...
 type DatabaseService interface {
 	TestDatabaseConnection(ctx context.Context, options DatabaseConnectionOptions) error
 	ConnectToDatabase(ctx context.Context, options ConnectToDatabaseOptions) (string, error)
@@ -41,12 +44,14 @@ type DatabaseService interface {
 	ConvertDatabaseResultToJSON(ctx context.Context, options ConvertDatabaseResultToJSONOptions) (string, error)
 }
 
+// ConnectToDatabaseOptions represents options for ConnectToDatabase method.
 type ConnectToDatabaseOptions struct {
 	SecretKey                 string                    `json:"secretKey" binding:"required"`
 	ConnectionSessionTime     string                    `json:"connectionSessionTime" binding:"required"`
 	DatabaseConnectionOptions DatabaseConnectionOptions `json:"databaseConnectionOptions"`
 }
 
+// DatabaseConnectionOptions represents options that required for creating connection with database.
 type DatabaseConnectionOptions struct {
 	Host           string `json:"host" binding:"required"`
 	Port           int    `json:"port" binding:"required"`
@@ -56,11 +61,13 @@ type DatabaseConnectionOptions struct {
 	SSLModeEnabled bool   `json:"sslModeEnabled"`
 }
 
+// ListDatabaseTablesOptions represents options for ListDatabaseTables method.
 type ListDatabaseTablesOptions struct {
 	SecretKey   string `json:"secretKey" binding:"required"`
 	DatabaseKey string `json:"databaseKey" binding:"required"`
 }
 
+// ConvertDatabaseResultToJSONOptions represents options for ConvertDatabaseResultToJS method.
 type ConvertDatabaseResultToJSONOptions struct {
 	SecretKey   string `json:"secretKey" binding:"required"`
 	DatabaseKey string `json:"databaseKey" binding:"required"`
@@ -71,4 +78,5 @@ type ConvertDatabaseResultToJSONOptions struct {
 	Where  string   `json:"where"`
 }
 
+// ErrConnectionSessionTimeExpired occurs when entered by user time for connection session is expired.
 var ErrConnectionSessionTimeExpired = errors.New("connection session time expired")

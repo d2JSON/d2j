@@ -8,7 +8,7 @@ import (
 
 func main() {
 	config := config.Get()
-	logger := logger.New(config.Logger.LogLevel)
+	logger := logger.NewSlog(config.Logger.LogLevel)
 
 	app.Run(config, logger)
 }

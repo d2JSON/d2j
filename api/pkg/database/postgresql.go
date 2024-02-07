@@ -16,7 +16,8 @@ type postgreSQL struct {
 
 var _ Database = (*postgreSQL)(nil)
 
-func NewPostgreSQLDatabase(logger logger.Logger) *postgreSQL {
+// NewPostgreSQL is used to create an instance of postgresql database.
+func NewPostgreSQL(logger logger.Logger) *postgreSQL {
 	return &postgreSQL{
 		logger: logger,
 	}

@@ -19,7 +19,8 @@ type databaseService struct {
 
 var _ DatabaseService = (*databaseService)(nil)
 
-func NewDatabaseService(options *ServiceOptions) *databaseService {
+// NewDatabaseService  is used to create an instance of database service.
+func NewDatabaseService(options *Options) *databaseService {
 	return &databaseService{
 		serviceContext: serviceContext{
 			logger:    options.Logger,

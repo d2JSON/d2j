@@ -12,7 +12,8 @@ type logger struct {
 
 var _ Logger = (*logger)(nil)
 
-func New(level string) *logger {
+// NewSlog is used to create an instance of slog logger.
+func NewSlog(level string) *logger {
 	loggerHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: parseSlogLevel(level),
 	})

@@ -33,6 +33,7 @@ type RouterOptions struct {
 	Services service.Services
 }
 
+// New creates and register all routes.
 func New(options Options) {
 	routerOptions := RouterOptions{
 		Handler:  options.Handler.Group("/api"),
