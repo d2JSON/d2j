@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/VladPetriv/postgreSQL2JSON/pkg/logger"
+	"github.com/VladPetriv/d2j/pkg/logger"
 	"github.com/jmoiron/sqlx"
 )
 

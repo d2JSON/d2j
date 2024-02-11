@@ -3,7 +3,7 @@ package controller
 import (
 	"errors"
 
-	"github.com/VladPetriv/postgreSQL2JSON/internal/service"
+	"github.com/VladPetriv/d2j/internal/service"
 	"github.com/gin-gonic/gin"
 )
 

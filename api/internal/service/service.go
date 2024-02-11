@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 
-	"github.com/VladPetriv/postgreSQL2JSON/config"
-	"github.com/VladPetriv/postgreSQL2JSON/pkg/caching"
-	"github.com/VladPetriv/postgreSQL2JSON/pkg/database"
-	"github.com/VladPetriv/postgreSQL2JSON/pkg/encryption"
-	"github.com/VladPetriv/postgreSQL2JSON/pkg/hashing"
-	"github.com/VladPetriv/postgreSQL2JSON/pkg/logger"
+	"github.com/VladPetriv/d2j/config"
+	"github.com/VladPetriv/d2j/pkg/caching"
+	"github.com/VladPetriv/d2j/pkg/database"
+	"github.com/VladPetriv/d2j/pkg/encryption"
+	"github.com/VladPetriv/d2j/pkg/hashing"
+	"github.com/VladPetriv/d2j/pkg/logger"
 )
 
 // Services represents a structure that contains all application services.

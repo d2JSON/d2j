@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/VladPetriv/postgreSQL2JSON/config"
-	"github.com/VladPetriv/postgreSQL2JSON/internal/app"
-	"github.com/VladPetriv/postgreSQL2JSON/pkg/logger"
+	"github.com/VladPetriv/d2j/config"
+	"github.com/VladPetriv/d2j/internal/app"
+	"github.com/VladPetriv/d2j/pkg/logger"
 )
 
 func main() {

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/VladPetriv/postgreSQL2JSON/config"
-	"github.com/VladPetriv/postgreSQL2JSON/internal/service"
-	"github.com/VladPetriv/postgreSQL2JSON/pkg/logger"
+	"github.com/VladPetriv/d2j/config"
+	"github.com/VladPetriv/d2j/internal/service"
+	"github.com/VladPetriv/d2j/pkg/logger"
 	"github.com/gin-gonic/gin"
 )
 

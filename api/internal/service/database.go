@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/VladPetriv/postgreSQL2JSON/pkg/caching"
-	"github.com/VladPetriv/postgreSQL2JSON/pkg/database"
-	"github.com/VladPetriv/postgreSQL2JSON/pkg/encryption"
+	"github.com/VladPetriv/d2j/pkg/caching"
+	"github.com/VladPetriv/d2j/pkg/database"
+	"github.com/VladPetriv/d2j/pkg/encryption"
 	"github.com/google/uuid"
 )
 
