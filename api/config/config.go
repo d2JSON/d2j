@@ -17,7 +17,7 @@ type Config struct {
 type (
 	// HTTP represents a configuration for HTTP server.
 	HTTP struct {
-		Port string `env:"HTTP_PORT" env-default:"8080"`
+		Port string `env:"PORT" env-default:"8080"`
 	}
 
 	// Logger represents a configuration for logger.
