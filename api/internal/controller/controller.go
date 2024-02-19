@@ -35,6 +35,9 @@ type RouterOptions struct {
 
 // New creates and register all routes.
 func New(options Options) {
+
+	options.Handler.Use(corsMiddleware)
+
 	routerOptions := RouterOptions{
 		Handler:  options.Handler.Group("/api"),
 		Logger:   options.Logger,
@@ -96,5 +99,21 @@ func wrapHandler(options RouterOptions, handler func(c *gin.Context) (interface{
 		}
 
 		c.JSON(http.StatusOK, body)
+	}
+}
+
+func corsMiddleware(c *gin.Context) {
+	origin := c.Request.Header.Get("Origin")
+
+	c.Header("Access-Control-Allow-Origin", origin)
+	c.Header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
+	c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	c.Header("Access-Control-Allow-Credentials", "true")
+	c.Header("Content-Type", "application/json")
+
+	if c.Request.Method != "OPTIONS" {
+		c.Next()
+	} else {
+		c.AbortWithStatus(http.StatusOK)
 	}
 }
