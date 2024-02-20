@@ -35,7 +35,6 @@ type RouterOptions struct {
 
 // New creates and register all routes.
 func New(options Options) {
-
 	options.Handler.Use(corsMiddleware)
 
 	routerOptions := RouterOptions{
