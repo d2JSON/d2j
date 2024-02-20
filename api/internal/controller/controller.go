@@ -88,9 +88,14 @@ func wrapHandler(options RouterOptions, handler func(c *gin.Context) (interface{
 		// check error
 		if err != nil {
 			if err.Type == ErrorTypeServer {
-				err := c.AbortWithError(http.StatusInternalServerError, err)
-				if err != nil {
-					logger.Error("failed to abort with error", "err", err)
+				if options.Config.HTTP.SendDetailsOnInternalError {
+					c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+				} else {
+					//  Do not send error details to client
+					err := c.AbortWithError(http.StatusInternalServerError, err)
+					if err != nil {
+						logger.Error("failed to abort with error", "err", err)
+					}
 				}
 			} else {
 				c.AbortWithStatusJSON(http.StatusUnprocessableEntity, err)
