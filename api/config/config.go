@@ -9,12 +9,19 @@ import (
 
 // Config represents a structure that contains a configurations for different part of application.
 type Config struct {
+	App    App
 	HTTP   HTTP
 	Logger Logger
 	Redis  Redis
 }
 
 type (
+
+	// App represents a configuration for entire application.
+	App struct {
+		EncryptionSecretKey string `env:"ENCRYPTION_SECRET_KEY" env-default:"dxc3hve7mwfJEU9q"`
+	}
+
 	// HTTP represents a configuration for HTTP server.
 	HTTP struct {
 		Port                       string `env:"PORT" env-default:"8080"`

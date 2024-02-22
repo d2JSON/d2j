@@ -102,7 +102,7 @@ func (d databaseService) ConnectToDatabase(ctx context.Context, options ConnectT
 
 	encryptedConnectionData, err := d.encryptor.Encrypt(encryption.EncryptOptions{
 		Data:   marshalledConnectionOptions,
-		Secret: options.SecretKey,
+		Secret: d.config.App.EncryptionSecretKey,
 	})
 	if err != nil {
 		logger.Error("encrypt connection options", "err", err)
@@ -134,7 +134,7 @@ func (d databaseService) ConnectToDatabase(ctx context.Context, options ConnectT
 func (d databaseService) ListDatabaseTables(ctx context.Context, options ListDatabaseTablesOptions) ([]string, error) {
 	logger := d.logger.Named("databaseService.ListDatabaseTables")
 
-	databaseConnectionOptions, err := d.getDatabaseCredentials(ctx, options.SecretKey, options.DatabaseKey)
+	databaseConnectionOptions, err := d.getDatabaseCredentials(ctx, options.DatabaseKey)
 	if err != nil {
 		if errors.Is(err, ErrConnectionSessionTimeExpired) {
 			logger.Info("connection session time expired")
@@ -179,7 +179,7 @@ func (d databaseService) ListDatabaseTables(ctx context.Context, options ListDat
 func (d databaseService) ConvertDatabaseResultToJSON(ctx context.Context, options ConvertDatabaseResultToJSONOptions) (string, error) {
 	logger := d.logger.Named("databaseService.ConvertDatabaseResultToJSON")
 
-	databaseConnectionOptions, err := d.getDatabaseCredentials(ctx, options.SecretKey, options.DatabaseKey)
+	databaseConnectionOptions, err := d.getDatabaseCredentials(ctx, options.DatabaseKey)
 	if err != nil {
 		logger.Error("get database credentials", "err", err)
 		return "", fmt.Errorf("get database credentials: %w", err)
@@ -280,7 +280,7 @@ func (d databaseService) buildQuery(options buildQueryOptions) string {
 	return query
 }
 
-func (d databaseService) getDatabaseCredentials(ctx context.Context, secretKey, databaseKey string) (*DatabaseConnectionOptions, error) {
+func (d databaseService) getDatabaseCredentials(ctx context.Context, databaseKey string) (*DatabaseConnectionOptions, error) {
 	logger := d.logger.Named("databaseService.getDatabaseCredentials")
 
 	encryptedDatabaseCredentials, err := d.cacher.Read(ctx, databaseKey)
@@ -297,7 +297,7 @@ func (d databaseService) getDatabaseCredentials(ctx context.Context, secretKey, 
 
 	decryptedDatabaseCredentials, err := d.encryptor.Decrypt(encryption.DecryptOptions{
 		EncryptedData: encryptedDatabaseCredentials,
-		Secret:        secretKey,
+		Secret:        d.config.App.EncryptionSecretKey,
 	})
 	if err != nil {
 		logger.Error("decrypt database credentials", "err", err)

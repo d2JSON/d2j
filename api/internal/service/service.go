@@ -46,7 +46,6 @@ type DatabaseService interface {
 
 // ConnectToDatabaseOptions represents options for ConnectToDatabase method.
 type ConnectToDatabaseOptions struct {
-	SecretKey                 string                    `json:"secretKey" binding:"required"`
 	ConnectionSessionTime     string                    `json:"connectionSessionTime" binding:"required"`
 	DatabaseConnectionOptions DatabaseConnectionOptions `json:"databaseConnectionOptions"`
 }
@@ -63,13 +62,11 @@ type DatabaseConnectionOptions struct {
 
 // ListDatabaseTablesOptions represents options for ListDatabaseTables method.
 type ListDatabaseTablesOptions struct {
-	SecretKey   string `json:"secretKey" binding:"required"`
 	DatabaseKey string `json:"databaseKey" binding:"required"`
 }
 
 // ConvertDatabaseResultToJSONOptions represents options for ConvertDatabaseResultToJS method.
 type ConvertDatabaseResultToJSONOptions struct {
-	SecretKey   string `json:"secretKey" binding:"required"`
 	DatabaseKey string `json:"databaseKey" binding:"required"`
 	TableName   string `json:"tableName" binding:"required"`
 
