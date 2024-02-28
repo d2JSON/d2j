@@ -85,6 +85,39 @@ func (p *postgreSQL) Close() error {
 	return nil
 }
 
+func (p *postgreSQLClient) BuildQuery(options BuildQueryOptions) string {
+	var query string
+
+	if len(options.Fields) == 0 {
+		query = fmt.Sprintf("SELECT to_jsonb(%s) FROM %s", options.TableName, options.TableName)
+	}
+
+	if len(options.Fields) != 0 {
+		query += "SELECT jsonb_agg(jsonb_build_object("
+
+		for i, f := range options.Fields {
+			if i == len(options.Fields)-1 {
+				query += fmt.Sprintf("'%s', %s))", f, f)
+
+				continue
+			}
+
+			query += fmt.Sprintf("'%s', %s, ", f, f)
+		}
+
+		query += fmt.Sprintf("FROM %s", options.TableName)
+	}
+
+	if len(options.Where) != 0 {
+		query += fmt.Sprintf(" WHERE %s", options.Where)
+	}
+	if options.Limit != 0 {
+		query += fmt.Sprintf(" LIMIT %d", options.Limit)
+	}
+
+	return query
+}
+
 func (p *postgreSQLClient) ListTables() ([]Table, error) {
 	logger := p.logger.Named("postgreSQLClient.ListTables")
 

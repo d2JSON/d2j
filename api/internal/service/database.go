@@ -200,7 +200,7 @@ func (d databaseService) ConvertDatabaseResultToJSON(ctx context.Context, option
 	}
 	logger.Debug("connected to database")
 
-	query := d.buildQuery(buildQueryOptions{
+	query := databaseClient.BuildQuery(database.BuildQueryOptions{
 		TableName: options.TableName,
 		Limit:     options.Limit,
 		Fields:    options.Fields,
@@ -232,52 +232,6 @@ func (d databaseService) ConvertDatabaseResultToJSON(ctx context.Context, option
 	logger.Debug("converted database result to JSON", "JSONResult", JSONResult)
 
 	return JSONResult, nil
-}
-
-type buildQueryOptions struct {
-	TableName string
-	Fields    []string
-	Limit     int
-	Where     string
-}
-
-func (d databaseService) buildQuery(options buildQueryOptions) string {
-	logger := d.logger.Named("databaseService.buildQuery")
-	var query string
-
-	if len(options.Fields) == 0 {
-		query = fmt.Sprintf("SELECT to_jsonb(%s) FROM %s", options.TableName, options.TableName)
-		logger.Debug("built select and from statement", "query", query)
-	}
-
-	if len(options.Fields) != 0 {
-		query += "SELECT jsonb_agg(jsonb_build_object("
-
-		for i, f := range options.Fields {
-			if i == len(options.Fields)-1 {
-				query += fmt.Sprintf("'%s', %s))", f, f)
-
-				continue
-			}
-
-			query += fmt.Sprintf("'%s', %s, ", f, f)
-		}
-
-		query += fmt.Sprintf("FROM %s", options.TableName)
-		logger.Debug("built select with specific fields and from statement", "query", query)
-	}
-
-	if len(options.Where) != 0 {
-		query += fmt.Sprintf(" WHERE %s", options.Where)
-		logger.Debug("added where condition", "query", query)
-	}
-	if options.Limit != 0 {
-		query += fmt.Sprintf(" LIMIT %d", options.Limit)
-		logger.Debug("added limit", "query", query)
-	}
-	logger.Debug("built query", "query", query)
-
-	return query
 }
 
 func (d databaseService) getDatabaseCredentials(ctx context.Context, databaseKey string) (*DatabaseConnectionOptions, error) {

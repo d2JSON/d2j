@@ -6,12 +6,6 @@ type Database interface {
 	Close() error
 }
 
-// DBClient ...
-type DBClient interface {
-	ListTables() ([]Table, error)
-	ExecuteQuery(query string) ([]string, error)
-}
-
 // ConnectionOptions represents an options that used for connecting to the database.
 type ConnectionOptions struct {
 	Host           string
@@ -20,6 +14,21 @@ type ConnectionOptions struct {
 	Password       string
 	DatabaseName   string
 	SSLModeEnabled bool
+}
+
+// DBClient ...
+type DBClient interface {
+	BuildQuery(options BuildQueryOptions) string
+	ListTables() ([]Table, error)
+	ExecuteQuery(query string) ([]string, error)
+}
+
+// BuildQueryOptions represents an options that used for building query.
+type BuildQueryOptions struct {
+	TableName string
+	Fields    []string
+	Limit     int
+	Where     string
 }
 
 // Table represents a database table.
