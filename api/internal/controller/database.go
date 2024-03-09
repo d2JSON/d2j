@@ -34,7 +34,7 @@ type testDBConnectionRequestBody struct {
 }
 
 type testDBConnectionResponseBody struct {
-	Success bool `json:"success"`
+	Message string `json:"message"`
 }
 
 func (r databaseRouter) testDBConnection(c *gin.Context) (interface{}, *httpResponseError) {
@@ -51,11 +51,13 @@ func (r databaseRouter) testDBConnection(c *gin.Context) (interface{}, *httpResp
 	err = r.services.Database.TestDatabaseConnection(c, *requestBody.DatabaseConnectionOptions)
 	if err != nil {
 		logger.Error("test database connection", "err", err)
-		return nil, &httpResponseError{Message: "test database connection failed", Type: ErrorTypeServer}
+		return nil, &httpResponseError{Message: "Failed to test connection with your database!\nPlease try again!", Type: ErrorTypeServer}
 	}
 
 	logger.Info("connection tested")
-	return testDBConnectionResponseBody{true}, nil
+	return testDBConnectionResponseBody{
+		Message: "We have successfully established a connection with your database.",
+	}, nil
 }
 
 type connectToDatabaseRequestBody struct {
