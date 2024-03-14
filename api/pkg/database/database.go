@@ -1,5 +1,7 @@
 package database
 
+import "github.com/VladPetriv/d2j/pkg/errs"
+
 // Database ...
 type Database interface {
 	Connect(options ConnectionOptions) (DBClient, error)
@@ -36,3 +38,11 @@ type Table struct {
 	SchemaName string `db:"schemaname"`
 	TableName  string `db:"tablename"`
 }
+
+var (
+	ErrDatabaseDoesNotExists = errs.New("database does not exists")
+	ErrInvalidUsername       = errs.New("invalid username")
+	ErrInvalidHost           = errs.New("invalid host")
+	ErrInvalidPort           = errs.New("invalid port")
+	ErrNoAccess              = errs.New("no access")
+)

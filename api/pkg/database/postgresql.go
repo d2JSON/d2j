@@ -1,11 +1,15 @@
 package database
 
 import (
+	"errors"
 	"fmt"
+	"net"
 	"slices"
+	"strings"
 
 	"github.com/VladPetriv/d2j/pkg/logger"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 type postgreSQL struct {
@@ -46,6 +50,11 @@ func (p *postgreSQL) Connect(options ConnectionOptions) (DBClient, error) {
 
 	db, err := sqlx.Connect("postgres", connectionString)
 	if err != nil {
+		if pqErr := handlePostgresError(err); pqErr != nil {
+			logger.Info(pqErr.Error())
+			return nil, pqErr
+		}
+
 		logger.Error("connect to postgresql", "err", err)
 		return nil, fmt.Errorf("connect to postgresql: %w", err)
 	}
@@ -64,9 +73,6 @@ func buildConnectionString(options ConnectionOptions) string {
 
 	if !options.SSLModeEnabled {
 		connectionString += " sslmode=disable"
-	}
-	if options.SSLModeEnabled {
-		connectionString += " sslmode=enable"
 	}
 
 	return connectionString
@@ -169,4 +175,36 @@ func (p *postgreSQLClient) ExecuteQuery(query string) ([]string, error) {
 	logger.Debug("got result", "result", result)
 
 	return result, nil
+}
+
+func handlePostgresError(err error) error {
+	pqErr := &pq.Error{}
+	if errors.As(err, &pqErr) {
+		switch pqErr.Code.Name() {
+		case "invalid_catalog_name":
+			return ErrDatabaseDoesNotExists
+
+		case "invalid_authorization_specification":
+			if strings.Contains(pqErr.Error(), "no pg_hba.conf entry for host") {
+				return ErrNoAccess
+			}
+
+			return ErrInvalidUsername
+
+		default:
+			return nil
+		}
+	}
+
+	opErr := &net.OpError{}
+	if errors.As(err, &opErr) {
+		if strings.Contains(opErr.Error(), "no such host") {
+			return ErrInvalidHost
+		}
+		if strings.Contains(opErr.Error(), "connect: connection refused") {
+			return ErrInvalidPort
+		}
+	}
+
+	return nil
 }
