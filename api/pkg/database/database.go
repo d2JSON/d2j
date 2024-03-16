@@ -40,9 +40,14 @@ type Table struct {
 }
 
 var (
+	// ErrDatabaseDoesNotExists - database does not exists.
 	ErrDatabaseDoesNotExists = errs.New("database does not exists")
-	ErrInvalidUsername       = errs.New("invalid username")
-	ErrInvalidHost           = errs.New("invalid host")
-	ErrInvalidPort           = errs.New("invalid port")
-	ErrNoAccess              = errs.New("no access")
+	// ErrInvalidUsername - invalid username.
+	ErrInvalidUsername = errs.New("invalid username")
+	// ErrInvalidHost - invalid host.
+	ErrInvalidHost = errs.New("invalid host")
+	// ErrInvalidPort - invalid port.
+	ErrInvalidPort = errs.New("invalid port")
+	// ErrNoAccess - no access to database.
+	ErrNoAccess = errs.New("no access")
 )
