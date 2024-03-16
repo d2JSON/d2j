@@ -10,6 +10,7 @@ import (
 	"github.com/VladPetriv/d2j/pkg/caching"
 	"github.com/VladPetriv/d2j/pkg/database"
 	"github.com/VladPetriv/d2j/pkg/encryption"
+	"github.com/VladPetriv/d2j/pkg/errs"
 	"github.com/google/uuid"
 )
 
@@ -45,6 +46,11 @@ func (d databaseService) TestDatabaseConnection(ctx context.Context, options Dat
 		SSLModeEnabled: options.SSLModeEnabled,
 	})
 	if err != nil {
+		if errs.IsExpected(err) {
+			logger.Info(err.Error())
+			return d.handleConnectionErrors(err)
+		}
+
 		logger.Error("connect to database", "err", err)
 		return fmt.Errorf("connect to database: %w", err)
 	}
@@ -154,6 +160,11 @@ func (d databaseService) ListDatabaseTables(ctx context.Context, options ListDat
 		SSLModeEnabled: databaseConnectionOptions.SSLModeEnabled,
 	})
 	if err != nil {
+		if errs.IsExpected(err) {
+			logger.Info(err.Error())
+			return nil, d.handleConnectionErrors(err)
+		}
+
 		logger.Error("connect to database", "err", err)
 		return nil, fmt.Errorf("connect to database: %w", err)
 	}
@@ -195,6 +206,10 @@ func (d databaseService) ConvertDatabaseResultToJSON(ctx context.Context, option
 		SSLModeEnabled: databaseConnectionOptions.SSLModeEnabled,
 	})
 	if err != nil {
+		if errs.IsExpected(err) {
+			logger.Info(err.Error())
+			return "", d.handleConnectionErrors(err)
+		}
 		logger.Error("connect to database", "err", err)
 		return "", fmt.Errorf("connect to database: %w", err)
 	}
@@ -232,6 +247,26 @@ func (d databaseService) ConvertDatabaseResultToJSON(ctx context.Context, option
 	logger.Debug("converted database result to JSON", "JSONResult", JSONResult)
 
 	return JSONResult, nil
+}
+
+func (d databaseService) handleConnectionErrors(err error) error {
+	if errs.HasAnyGivenMessage(err, database.ErrDatabaseDoesNotExists.Error()) {
+		return ErrDatabaseDoesNotExists
+	}
+	if errs.HasAnyGivenMessage(err, database.ErrInvalidUsername.Error()) {
+		return ErrInvalidUsername
+	}
+	if errs.HasAnyGivenMessage(err, database.ErrInvalidHost.Error()) {
+		return ErrInvalidHost
+	}
+	if errs.HasAnyGivenMessage(err, database.ErrInvalidPort.Error()) {
+		return ErrInvalidPort
+	}
+	if errs.HasAnyGivenMessage(err, database.ErrNoAccess.Error()) {
+		return ErrNoAccessToDatabase
+	}
+
+	return err
 }
 
 func (d databaseService) getDatabaseCredentials(ctx context.Context, databaseKey string) (*DatabaseConnectionOptions, error) {
