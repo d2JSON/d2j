@@ -8,6 +8,7 @@ import (
 	"github.com/VladPetriv/d2j/pkg/caching"
 	"github.com/VladPetriv/d2j/pkg/database"
 	"github.com/VladPetriv/d2j/pkg/encryption"
+	"github.com/VladPetriv/d2j/pkg/errs"
 	"github.com/VladPetriv/d2j/pkg/hashing"
 	"github.com/VladPetriv/d2j/pkg/logger"
 )
@@ -75,5 +76,17 @@ type ConvertDatabaseResultToJSONOptions struct {
 	Where  string   `json:"where"`
 }
 
-// ErrConnectionSessionTimeExpired occurs when entered by user time for connection session is expired.
-var ErrConnectionSessionTimeExpired = errors.New("connection session time expired")
+var (
+	// ErrConnectionSessionTimeExpired occurs when entered by user time for connection session is expired.
+	ErrConnectionSessionTimeExpired = errors.New("connection session time expired")
+	// ErrDatabaseDoesNotExists occurs when entered database name does not exists.
+	ErrDatabaseDoesNotExists = errs.New("The entered database does not exist. Please verify the database name and try again")
+	// ErrInvalidUsername occurs when user enters incorrect username for database.
+	ErrInvalidUsername = errs.New("Invalid username. Please check and try again.")
+	// ErrInvalidHost occurs when user enters incorrect database host.
+	ErrInvalidHost = errs.New("Invalid database host. Please check and try again.")
+	// ErrInvalidPort occurs when user enters incorrect database port.
+	ErrInvalidPort = errs.New("Invalid port number. Please check and try again.")
+	// ErrNoAccessToDatabase occurs when user database config does not allow connection from different IPs.
+	ErrNoAccessToDatabase = errs.New("Access denied. Please verify your credentials and connection settings")
+)
