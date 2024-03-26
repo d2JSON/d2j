@@ -1,0 +1,42 @@
+services:
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    environment:
+      - API_URL="http://localhost:8080/api"
+    ports:
+      - 3000:3000
+      - 3001:3001
+    volumes:
+      - type: bind
+        source: ./web/src
+        target: /web/src
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      - REDIS_HOST="cache:6379"     
+      - REDIS_PASSWORD="eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81"     
+      - REDIS_DATABAS=""     
+    
+    depends_on:
+      - cache 
+    ports:
+      - 8080:8080 
+    
+  cache:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes: 
+      - cache:/data
+
+volumes:
+  web:
+  cache:
+    driver: local

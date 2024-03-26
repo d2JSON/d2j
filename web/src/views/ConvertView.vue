@@ -13,7 +13,7 @@ const handleConvertToJSON = async (convertOptions) => {
   loaderState.value = true
 
   const { execute } =
-    useAxios('http://localhost:8080/api/database/get-json',
+    useAxios(process.env.API_URL + '/database/get-json',
       { method: 'POST' },
       { immediate: false });
 

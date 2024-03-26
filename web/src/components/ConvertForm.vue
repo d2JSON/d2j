@@ -29,7 +29,7 @@ onMounted(async () => {
   }
 
   const { execute } =
-    useAxios('http://localhost:8080/api/database/list-tables',
+    useAxios(process.env.API_URL + '/database/list - tables',
       { method: 'POST' },
       { immediate: false });
 
