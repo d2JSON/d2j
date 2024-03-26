@@ -4,6 +4,7 @@ import ConnectionOption from '@/components/ConnectionOption.vue';
 import Header from '@/components/Header.vue';
 import Result from '@/components/Result.vue';
 import router from '@/router';
+import { saveDatabaseKeyToLocalStorage } from '@/store/index';
 import { useAxios } from '@vueuse/integrations/useAxios';
 import { ref } from 'vue';
 
@@ -11,7 +12,6 @@ const connectionOptions = ref({
   TestDatabaseConnection: false,
   ConnectToDatabase: false,
 })
-
 
 const loaderState = ref(false)
 const result = ref({})
@@ -21,7 +21,7 @@ const handleTestConnection = async (connectionOptions) => {
 
   const { execute } =
     useAxios('http://localhost:8080/api/database/test-connection',
-      { method: "POST" },
+      { method: 'POST' },
       { immediate: false });
 
   try {
@@ -41,7 +41,7 @@ const handleConnectToDatabase = async (connectionOptions) => {
 
   const { execute } =
     useAxios('http://localhost:8080/api/database/connect',
-      { method: "POST" },
+      { method: 'POST' },
       { immediate: false });
 
   try {
@@ -57,7 +57,7 @@ const handleConnectToDatabase = async (connectionOptions) => {
     }
 
     setTimeout(() => {
-      router.push({ name: "convert" })
+      router.push({ name: 'convert' })
     }, 1000);
 
   } catch (err) {
@@ -69,9 +69,6 @@ const handleConnectToDatabase = async (connectionOptions) => {
   }
 }
 
-const saveDatabaseKeyToLocalStorage = (databaseKey) => {
-  localStorage.setItem('databaseKey', databaseKey)
-}
 </script>
 
 <template>
