@@ -40,7 +40,7 @@ const handleConnectToDatabase = async (connectionOptions) => {
   loaderState.value = true
 
   const { execute } =
-    useAxios('http://localhost:8080/api/database/connect',
+    useAxios(process.env.API_URL + '/database/connect',
       { method: 'POST' },
       { immediate: false });
 
