@@ -12,6 +12,7 @@
     "@vueuse/core": "^10.9.0",
     "@vueuse/integrations": "^10.9.0",
     "axios": "^1.6.7",
+    "highlight.js": "^11.9.0",
     "vue": "^3.4.15",
     "vue-router": "^4.2.5",
     "vue-spinner": "^1.0.4"
