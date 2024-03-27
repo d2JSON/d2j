@@ -1,8 +1,6 @@
 <script setup>
-import hljs from 'highlight.js/lib/core';
-import json from 'highlight.js/lib/languages/json';
+import { jsontohtml } from 'jsontohtml-render';
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue';
-hljs.registerLanguage('json', json);
 
 const props = defineProps({
   jsonData: {
@@ -14,17 +12,29 @@ const props = defineProps({
     required: true,
   }
 })
+
+const jsonOutputSettings = {
+  colors: {
+    background: 'white',
+    values: {
+      curly_brace: 'black',
+      square_brace: 'black',
+      comma_colon_quotes: 'black',
+    },
+
+  },
+  comments: {
+    show: false
+  }
+}
 </script>
 
 <template>
   <div class="result-container">
     <h2>Result:</h2>
-    <div id="result-text" style="text-align: center;">
+    <div id="result-text">
       <PulseLoader :loading="loaderState" :color="'#9d76ce'" v-if="loaderState" />
-      <p v-else v-html="hljs.highlight(
-        JSON.stringify(jsonData, undefined, 2),
-        { language: 'json' }
-      ).value">
+      <p v-else v-html="jsontohtml(jsonData, jsonOutputSettings)">
       </p>
     </div>
   </div>
