@@ -15,7 +15,10 @@ const onSubmit = () => {
     tableName: tableName.value,
     where: whereCondition.value,
     limit: limitValue.value,
-    fields: expectedColumns.value.split(', ')
+    fields: [],
+  }
+  if (expectedColumns.value.length != 0) {
+    convertQueryToJSONOptions.fields = expectedColumns.value.split(', ')
   }
 
   emit('convertQueryToJSON', convertQueryToJSONOptions)
