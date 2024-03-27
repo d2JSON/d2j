@@ -29,7 +29,7 @@ onMounted(async () => {
   }
 
   const { execute } =
-    useAxios(process.env.API_URL + '/database/list - tables',
+    useAxios(process.env.API_URL + '/database/list-tables',
       { method: 'POST' },
       { immediate: false });
 

@@ -71,7 +71,7 @@ type ConvertDatabaseResultToJSONOptions struct {
 	DatabaseKey string `json:"databaseKey" binding:"required"`
 	TableName   string `json:"tableName" binding:"required"`
 
-	Fields []string `json:"fileds"`
+	Fields []string `json:"fields"`
 	Limit  int      `json:"limit"`
 	Where  string   `json:"where"`
 }
